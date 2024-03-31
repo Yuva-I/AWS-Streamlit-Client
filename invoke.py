@@ -1,9 +1,51 @@
-
 import streamlit as st
 import boto3
 import json
 import pefile
 from scipy.sparse import hstack, csr_matrix
+import collections
+from nltk import ngrams
+import numpy as np
+
+def readFile(filePath):
+    with open(filePath, "rb") as binary_file:
+        data = binary_file.read()
+    return data
+
+def byteSequenceToNgrams(byteSequence, n):
+    Ngrams = ngrams(byteSequence, n)
+    return list(Ngrams)
+    
+def extractNgramCounts(file, N):
+    fileByteSequence = readFile(file)
+    fileNgrams = byteSequenceToNgrams(fileByteSequence, N)
+    return collections.Counter(fileNgrams)
+
+def getNGramFeaturesFromSample(file, K1_most_common_Ngrams_list):
+    K1 = len(K1_most_common_Ngrams_list)
+    fv = K1*[0]
+    fileNgrams = extractNgramCounts(file, N)
+    for i in range(K1):
+        fv[i]=fileNgrams[K1_most_common_Ngrams_list[i]]
+    return fv
+
+def preprocessImports(listOfDLLs):
+    processedListOfDLLs = []
+    temp = [x.decode().split(".")[0].lower() for x in listOfDLLs]
+    return " ".join(temp)
+
+def getImports(pe):
+    listOfImports = []
+    for entry in pe.DIRECTORY_ENTRY_IMPORT:
+        listOfImports.append(entry.dll)
+    return preprocessImports(listOfImports)
+
+def getSectionNames(pe):
+    listOfSectionNames = []
+    for eachSection in pe.sections:
+        refined_name = eachSection.Name.decode().replace('\x00','').lower()
+        listOfSectionNames.append(refined_name)
+    return " ".join(listOfSectionNames)
 
 # Initialize SageMaker runtime client
 runtime = boto3.client('sagemaker-runtime',

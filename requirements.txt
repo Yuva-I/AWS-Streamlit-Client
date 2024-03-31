@@ -3,3 +3,6 @@ streamlit
 boto3
 pefile
 joblib
+nltk
+numpy
+collections

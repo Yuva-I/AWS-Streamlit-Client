@@ -4,4 +4,3 @@ boto3
 pefile
 joblib
 nltk
-collections

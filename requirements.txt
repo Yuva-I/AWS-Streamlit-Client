@@ -1,4 +1,4 @@
-
+scipy
 streamlit
 boto3
 pefile
